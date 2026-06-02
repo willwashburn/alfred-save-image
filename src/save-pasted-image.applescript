@@ -49,11 +49,22 @@ on run
 		return
 	end try
 
-	-- 5. Put the saved file's full path on the clipboard, then tell the
-	--    user where it went. We use pbcopy rather than `set the clipboard
-	--    to`, which doesn't reliably take effect from osascript launched in
-	--    Alfred's background context.
+	-- 5. Put the saved file's full path on the clipboard. We use pbcopy
+	--    rather than `set the clipboard to`, which doesn't reliably take
+	--    effect from osascript launched in Alfred's background context.
 	do shell script "printf %s " & quoted form of destPath & " | pbcopy"
+
+	-- 6. Append a debug line so we can always see where files actually went.
+	do shell script "printf '%s\\t%s\\n' \"$(date)\" " & quoted form of destPath & " >> \"$HOME/Library/Logs/save-pasted-image.log\""
+
+	-- 7. Reveal the saved file in Finder so the destination is unambiguous,
+	--    then notify.
+	try
+		tell application "Finder"
+			reveal (POSIX file destPath as alias)
+			activate
+		end tell
+	end try
 	display notification destPath with title "Saved pasted image — path copied"
 	return destPath
 end run
