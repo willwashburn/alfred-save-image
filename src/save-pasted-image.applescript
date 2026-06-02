@@ -50,8 +50,10 @@ on run
 	end try
 
 	-- 5. Put the saved file's full path on the clipboard, then tell the
-	--    user where it went.
-	set the clipboard to destPath
+	--    user where it went. We use pbcopy rather than `set the clipboard
+	--    to`, which doesn't reliably take effect from osascript launched in
+	--    Alfred's background context.
+	do shell script "printf %s " & quoted form of destPath & " | pbcopy"
 	display notification destPath with title "Saved pasted image — path copied"
 	return destPath
 end run
