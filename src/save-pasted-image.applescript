@@ -49,7 +49,9 @@ on run
 		return
 	end try
 
-	-- 5. Tell the user where it went.
-	display notification destPath with title "Saved pasted image"
+	-- 5. Put the saved file's full path on the clipboard, then tell the
+	--    user where it went.
+	set the clipboard to destPath
+	display notification destPath with title "Saved pasted image — path copied"
 	return destPath
 end run

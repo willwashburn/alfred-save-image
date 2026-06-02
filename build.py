@@ -35,6 +35,11 @@ def build_plist(applescript: str) -> bytes:
         },
     }
 
+    # Run via /bin/bash (type 0 — the reliable, well-known language id) and
+    # call osascript on the AppleScript file bundled alongside info.plist.
+    # Alfred sets the working directory to the workflow folder, so "./" works.
+    # This avoids the ambiguous osascript language-type ids in the Run Script
+    # dropdown, which is what was silently failing before.
     script_object = {
         "uid": SCRIPT_UID,
         "type": "alfred.workflow.action.script",
@@ -42,10 +47,10 @@ def build_plist(applescript: str) -> bytes:
         "config": {
             "concurrently": False,
             "escaping": 0,
-            "script": applescript,
+            "script": "/usr/bin/osascript ./save-pasted-image.applescript",
             "scriptargtype": 1,  # 1 = pass input as argv (unused here)
             "scriptfile": "",
-            "type": 7,  # 7 = /usr/bin/osascript (AppleScript)
+            "type": 0,  # 0 = /bin/bash
             "wd": "",
         },
     }
@@ -95,6 +100,9 @@ def main() -> None:
 
     with zipfile.ZipFile(OUT, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.writestr("info.plist", plist_bytes)
+        # The bash action runs `osascript ./save-pasted-image.applescript`,
+        # so the script must live inside the bundle at that path.
+        zf.write(SRC, "save-pasted-image.applescript")
         # Alfred uses a file literally named icon.png as the workflow's icon.
         if os.path.exists(ICON):
             zf.write(ICON, "icon.png")
